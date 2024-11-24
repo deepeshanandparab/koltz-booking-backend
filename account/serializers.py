@@ -73,10 +73,14 @@ class UserSerializer(serializers.ModelSerializer):
         instance.mobile = validated_data.get("mobile", instance.mobile)
         instance.role = validated_data.get("role", instance.role)
         instance.is_active = validated_data.get("is_active", instance.is_active)
+        instance.picture = validated_data.get("picture", instance.picture)
         instance.save()
         return instance
 
     def to_internal_value(self, data):
         if 'role_data' in data:
             data['role_data'] = None
+        if 'picture' in data:
+            if data['picture'] == '':
+                data['picture'] = None
         return super(UserSerializer, self).to_internal_value(data)

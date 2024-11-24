@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-
+from django.core.validators import FileExtensionValidator
 
 class UserManager(BaseUserManager):
     def create_user(self, username, name=None):
@@ -58,6 +58,7 @@ class Role(models.Model):
         PLAYER = "PLAYER"
         STAFF = "STAFF"
         ADMIN = "ADMIN"
+        ACADEMY = "ACADEMY"
         SUPERADMIN = "SUPERADMIN"
 
     role = models.CharField(choices=RoleCategory.choices, default=RoleCategory.GUEST, max_length=255)
@@ -117,7 +118,14 @@ class User(AbstractUser):
 
     gender = models.CharField(choices=Gender.choices, default=Gender.MALE, max_length=255)
 
-    picture = models.ImageField(upload_to=profile_picture_directory_path, height_field=None, width_field=None, max_length=100, null=True, blank=True)
+    picture = models.ImageField(upload_to=profile_picture_directory_path, 
+                                height_field=None, 
+                                width_field=None, 
+                                max_length=100, 
+                                null=True, 
+                                blank=True,
+                                validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])]
+                                )
     
     age_proof_document_type = models.CharField(max_length=255, null=True, blank=True)
     age_proof_document = models.ImageField(upload_to=age_proof_directory_path, height_field=None, width_field=None, max_length=100, null=True, blank=True)

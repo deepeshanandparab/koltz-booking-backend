@@ -251,6 +251,11 @@ class ReservedBooking(models.Model):
     def __str__(self):
         return f"{self.reserved_for.username}"
     
+    def reserved_for_data(self):
+        return self.reserved_for
+
+    def pitch_data(self):
+        return self.pitch
 
 
 

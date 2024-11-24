@@ -274,3 +274,30 @@ class ReservedBookingViewSet(viewsets.ModelViewSet):
         reserved_list = ReservedBooking.objects.filter(pitch_id=pitch, weekdays__icontains=day)
         serializer = ReservedBookingSerializer(reserved_list, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['POST'])
+    def createreservation(self, request):
+        reserved_for = request.data.pop('reserved_for', None)
+        pitch = request.data.pop('pitch', None)
+        time_slot = request.data.pop('time_slot', None)
+        weekdays = request.data.pop('weekdays', None)
+        exception_dates = request.data.pop('exception_dates', None)
+        created_by = request.data.pop('created_by', None)
+
+        reserved_for_instance = User.objects.get(id=reserved_for)
+        pitch_instance = Pitch.objects.get(id=pitch)
+        created_by_instance = User.objects.get(id=created_by)
+        
+        reservation = ReservedBooking.objects.create(
+                                reserved_for=reserved_for_instance,
+                                pitch=pitch_instance,
+                                weekdays=weekdays,
+                                exception_dates=exception_dates,
+                                created_by=created_by_instance
+                            )
+
+        for slot in time_slot:
+            slot_instance = TimeSlot.objects.get(id=slot)
+            reservation.time_slot.add(slot_instance)
+        reservation.save()
+        return Response(status=201)

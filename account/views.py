@@ -19,6 +19,7 @@ from django.core.files.base import ContentFile
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.http.request import QueryDict
 
+
 class UserFilter(filters.FilterSet):
     class Meta:
         model = User
@@ -46,31 +47,19 @@ class UserViewSet(viewsets.ModelViewSet):
         instance = User.objects.get(pk=pk)
         serializer = UserSerializer(instance=instance, data=request.data, partial=True)
         if serializer.is_valid():
-            if len(request.data['picture']) > 0:
-                instance.picture = request.data['picture']
+            if 'picture' in request.data:
+                instance.picture = request.FILES['picture'] 
+            elif request.data['profile_picture_removed'] == 'true':
+                instance.picture.delete(save=True)
+            else:
+                pass
             instance = serializer.save()
             instance.save()
             return Response(serializer.data)
+        else:
+            print("Not Valid", serializer.errors)
         return Response({'errors': serializer.errors}, status=401)
     
-    # @action(detail=False, methods=['POST'])
-    # def register(self, request):
-    #     name = request.data['name']
-    #     mobile = request.data['mobile']
-    #     email = request.data['email']
-    #     password = request.data['password']
-    #     role = request.data['role']
-    #     role_instance = Role.objects.get(role=role)
-
-    #     user_data = {
-    #                 "name": request.data['name'] if 'name' in request.data else None, 
-    #                  "mobile": request.data['mobile'] if 'mobile' in request.data else None, 
-    #                  "email": request.data['email'] if 'email' in request.data else None, 
-    #                  "password": request.data['[password]'] if 'password' in request.data else None, 
-    #                  "role": role_instance
-    #                  }
-    #     user_element = QueryDict('', mutable=True)
-    #     user_element.update(user_data)
 
     @action(detail=False, methods=['POST'])
     def register(self, request):
@@ -94,6 +83,7 @@ class UserViewSet(viewsets.ModelViewSet):
             user.email = email
             user.mobile = mobile
             user.role = role_instance
+            user.status = 'INACTIVE'
             user.save()
             return Response({'message': "User registered successfully"}, status=201)
         else:
