@@ -18,6 +18,7 @@ from rest_framework.authtoken.models import Token
 from django.core.files.base import ContentFile
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.http.request import QueryDict
+import json
 
 
 class UserFilter(filters.FilterSet):
@@ -28,6 +29,8 @@ class UserFilter(filters.FilterSet):
             'name': ['icontains'],
             'email': ['icontains'],
             'mobile': ['icontains'],
+            'role': ['exact'],
+            'role__id': ['exact'],
             'role__role': ['exact', 'icontains'],
             'status': ['exact'],
         }
@@ -54,6 +57,58 @@ class UserViewSet(viewsets.ModelViewSet):
             else:
                 pass
             instance = serializer.save()
+            instance.save()
+            return Response(serializer.data)
+        else:
+            print("Not Valid", serializer.errors)
+        return Response({'errors': serializer.errors}, status=401)
+    
+
+    @action(detail=False, methods=['PUT'])
+    def updateuserstatus(self, request):
+        user_id = request.query_params.get('user', None)
+        status = request.query_params.get('status', None)
+        modified_by = request.query_params.get('modified_by', None)
+
+        instance = User.objects.get(pk=user_id)
+        modified_by_instance = User.objects.get(pk=modified_by)
+
+        data = {
+            "status": status,
+            "modified_by": modified_by_instance
+        }
+
+        serializer = UserSerializer(instance=instance, data=data, partial=True)
+        if serializer.is_valid():
+            instance = serializer.save()
+            instance.status = data['status']
+            instance.modified_by = data['modified_by']
+            instance.save()
+            return Response(serializer.data)
+        else:
+            print("Not Valid", serializer.errors)
+        return Response({'errors': serializer.errors}, status=401)
+
+
+    @action(detail=False, methods=['PUT'])
+    def updateuserrole(self, request):
+        user_id = request.query_params.get('user', None)
+        role_id = request.query_params.get('role', None)
+        modified_by = request.query_params.get('modified_by', None)
+
+        instance = User.objects.get(pk=user_id)
+        modified_by_instance = User.objects.get(pk=modified_by)
+        role_instance = Role.objects.get(pk=role_id)
+
+        data = {
+            "modified_by": modified_by_instance
+        }
+
+        serializer = UserSerializer(instance=instance, data=data, partial=True)
+        if serializer.is_valid():
+            instance = serializer.save()
+            instance.role = role_instance
+            instance.modified_by = data['modified_by']
             instance.save()
             return Response(serializer.data)
         else:

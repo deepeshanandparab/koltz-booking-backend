@@ -70,14 +70,11 @@ class Role(models.Model):
 
     status = models.CharField(choices=RoleStatus.choices, default=RoleStatus.ACTIVE, max_length=255)
 
-    def __str__(self):
-        return f"{self.role}"
-
     created_on = models.DateTimeField(auto_now_add=True)
     modified_on = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.role_name
+        return self.role
 
 
 def profile_picture_directory_path(instance, filename):
